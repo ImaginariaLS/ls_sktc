@@ -1,4 +1,5 @@
 <?php
+
 /*-------------------------------------------------------
 *
 *   Plugin "Sktc. Изменение стандартного облака тегов"
@@ -8,15 +9,21 @@
 *
 ---------------------------------------------------------
 */
-class PluginSktc_ModuleTopic_MapperTopic extends PluginSktc_Inherit_ModuleTopic_MapperTopic {
-	public function GetOpenTopicTags($iLimit,$iUserId=null) {
-		$sql = "
+
+class PluginSktc_ModuleTopic_MapperTopic extends PluginSktc_Inherit_ModuleTopic_MapperTopic
+{
+    public function GetOpenTopicTags($iLimit, $iUserId = null)
+    {
+        $table_topic_tag = Config::Get('db.table.topic_tag');
+        $table_blog = Config::Get('db.table.blog');
+
+        $sql = "
 			SELECT 
 				tt.topic_tag_text,
 				count(tt.topic_tag_text)	as count		 
 			FROM 
-				".Config::Get('db.table.topic_tag')." as tt,
-				".Config::Get('db.table.blog')." as b
+				{$table_topic_tag} as tt,
+				{$table_blog} as b
 			WHERE
 				1 = 1
 				{ AND tt.user_id = ?d }
@@ -30,17 +37,20 @@ class PluginSktc_ModuleTopic_MapperTopic extends PluginSktc_Inherit_ModuleTopic_
 				count desc		
 			LIMIT 0, ?d
 				";
-		$aReturn=array();
-		$aReturnSort=array();
-		if ($aRows=$this->oDb->select($sql,is_null($iUserId) ? DBSIMPLE_SKIP : $iUserId,$iLimit)) {
-			foreach ($aRows as $aRow) {
-					$aReturn[mb_strtolower($aRow['topic_tag_text'],'UTF-8')]=$aRow;
-			}
-			foreach ($aReturn as $aRow) {
-				$aReturnSort[]=Engine::GetEntity('Topic_TopicTag',$aRow);
-			}
-		}
-		return $aReturnSort;
-	}
+
+        $aReturn = array();
+        $aReturnSort = array();
+
+        $aRows = $this->oDb->select($sql, is_null($iUserId) ? DBSIMPLE_SKIP : $iUserId, $iLimit);
+
+        if ($aRows) {
+            foreach ($aRows as $aRow) {
+                $aReturn[mb_strtolower($aRow['topic_tag_text'], 'UTF-8')] = $aRow;
+            }
+            foreach ($aReturn as $aRow) {
+                $aReturnSort[] = Engine::GetEntity('Topic_TopicTag', $aRow);
+            }
+        }
+        return $aReturnSort;
+    }
 }
-?>
